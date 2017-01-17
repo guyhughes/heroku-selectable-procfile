@@ -4,10 +4,35 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 ENV_DIR=$3
 
-if [ -f $ENV_DIR/PROCFILE_PATH ]; then
-  PROCFILE_PATH=`cat $ENV_DIR/PROCFILE_PATH`
-  mv $BUILD_DIR/$PROCFILE_PATH $BUILD_DIR/Procfile
-  echo "-----> Using $PROCFILE_PATH as Procfile"
-else
-  echo "-----> PROCFILE_PATH not set in environment, doing nothing."
+env_var_path () {
+ echo "${ENV_DIR}/$1" 
+}
+
+if ! [ -f "$(env_var_path ENVIRONMENT)" ]; then
+  >&2 "ENVIRONMENT not set"
+  exit 1
 fi
+
+ENVIRONMENT=$(cat "$(env_var_path ENVIRONMENT)")
+case "$ENVIRONMENT" in 
+  production)
+    >&2 echo "heroku-selectable-procfile buildpack in production? No taco!"
+    exit 1
+    ;;
+  reviewapps)
+    ;;
+  *)
+    >&2 echo "$ENVIRONMENT is not an allowed value for ENVIRONMENT."
+    exit 1
+    ;;
+esac
+
+PROCFILE_PATH="${BUILD_DIR}/Procfile-${ENVIRONMENT}"
+
+if ! [ -f "${PROCFILE_PATH}" ]; then
+  >&2 echo "${PROCFILE_PATH} not found!"
+  exit 1
+fi
+
+mv $PROCFILE_PATH $BUILD_DIR/Procfile
+echo "-----> Using $PROCFILE_PATH as Procfile"
