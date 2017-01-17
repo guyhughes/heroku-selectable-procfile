@@ -15,10 +15,6 @@ fi
 
 ENVIRONMENT=$(cat "$(env_var_path ENVIRONMENT)")
 case "$ENVIRONMENT" in 
-  production)
-    >&2 echo "heroku-selectable-procfile buildpack in production? No taco!"
-    exit 1
-    ;;
   reviewapps)
     ;;
   *)
